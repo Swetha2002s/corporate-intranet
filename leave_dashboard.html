@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}HR Dashboard - Corporate Intranet{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-users"></i> HR Management Dashboard
+    </h1>
+    <p class="text-muted">Manage leaves, attendance, performance, and employee goals</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3>{{ pending_requests }}</h3>
+            <p>Pending Requests</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>{{ approved_requests }}</h3>
+            <p>Approved Leaves</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3>{{ total_leaves }}</h3>
+            <p>Your Leave Requests</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h3>{{ leave_types.count }}</h3>
+            <p>Leave Types</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row mt-5">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'leave-create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Request Leave
+                    </a>
+                    <a href="{% url 'leave-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> View All Leaves
+                    </a>
+                    <a href="{% url 'attendance-dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-check-circle"></i> Attendance
+                    </a>
+                    <a href="{% url 'performance-dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line"></i> Performance
+                    </a>
+                    <a href="{% url 'goal-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-target"></i> Goals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock"></i> Pending Leave Requests
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if pending_leaves %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Days</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in pending_leaves|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <strong>{{ leave.employee.get_full_name|default:leave.employee.username }}</strong>
+                                </td>
+                                <td>{{ leave.leave_type.name }}</td>
+                                <td>{{ leave.start_date|date:"d M Y" }}</td>
+                                <td>{{ leave.end_date|date:"d M Y" }}</td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ leave.days_requested }} days
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ leave.status|upper }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'leave-detail' leave.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No pending leave requests at the moment.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Types -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt"></i> Available Leave Types
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if leave_types %}
+                <div class="row">
+                    {% for leave_type in leave_types %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-left-primary" style="border-left: 4px solid #3498db;">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ leave_type.name }}</h6>
+                                <p class="card-text">
+                                    <strong>{{ leave_type.days_per_year }}</strong> days per year
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No leave types configured.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Leave Requests -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i> Recent Leave Requests
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if leave_requests %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Period</th>
+                                <th>Days</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leave_requests %}
+                            <tr>
+                                <td>{{ leave.employee.get_full_name|default:leave.employee.username }}</td>
+                                <td>{{ leave.leave_type.name }}</td>
+                                <td>{{ leave.start_date|date:"d M" }} - {{ leave.end_date|date:"d M Y" }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ leave.days_requested }}</span>
+                                </td>
+                                <td>
+                                    {% if leave.status == 'approved' %}
+                                        <span class="badge bg-success">{{ leave.status|upper }}</span>
+                                    {% elif leave.status == 'rejected' %}
+                                        <span class="badge bg-danger">{{ leave.status|upper }}</span>
+                                    {% elif leave.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ leave.status|upper }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ leave.status|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ leave.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No leave requests yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 4px solid #3498db !important;
+    }
+</style>
+{% endblock %}

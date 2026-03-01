@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}Documents Dashboard - Corporate Intranet{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-file-alt"></i> Document Management Dashboard
+    </h1>
+    <p class="text-muted">Manage documents, categories, and knowledge base articles</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3>{{ total_documents }}</h3>
+            <p>Total Documents</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>{{ public_documents }}</h3>
+            <p>Public Documents</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3>{{ categories.count }}</h3>
+            <p>Categories</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h3>{{ kb_list.count }}</h3>
+            <p>KB Articles</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row mt-5">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'document-create' %}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </a>
+                    <a href="{% url 'document-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> All Documents
+                    </a>
+                    <a href="{% url 'kb-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-book"></i> Knowledge Base
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-folder-open"></i> Recent Documents
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if documents %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Category</th>
+                                <th>Size</th>
+                                <th>Downloads</th>
+                                <th>Views</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in documents|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <strong>{{ doc.title }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ doc.category.name }}</span>
+                                </td>
+                                <td>
+                                    {% if doc.file_size %}
+                                        {{ doc.file_size|filesizeformat }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ doc.downloads|default:0 }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ doc.views|default:0 }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'document-detail' doc.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No documents yet. <a href="{% url 'document-create' %}">Upload one</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tags"></i> Document Categories
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if categories %}
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-left-primary" style="border-left: 4px solid #3498db;">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ category.name }}</h6>
+                                <p class="card-text text-muted">
+                                    <small>Category</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No categories created yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Knowledge Base Articles -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-book"></i> Knowledge Base Articles
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if kb_list %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Published</th>
+                                <th>Views</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in kb_list|slice:":10" %}
+                            <tr>
+                                <td>{{ article.title }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ article.category }}</span>
+                                </td>
+                                <td>
+                                    {% if article.is_published %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ article.views|default:0 }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'kb-detail' article.id %}" class="btn btn-sm btn-outline-primary">
+                                        Read
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No knowledge base articles yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 4px solid #3498db !important;
+    }
+</style>
+{% endblock %}

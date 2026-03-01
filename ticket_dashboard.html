@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Support Tickets Dashboard - Corporate Intranet{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-headset"></i> Support Ticket Dashboard
+    </h1>
+    <p class="text-muted">Manage customer support tickets and knowledge base</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3>{{ open_tickets }}</h3>
+            <p>Open Tickets</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>{{ in_progress_tickets }}</h3>
+            <p>In Progress</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3>{{ resolved_tickets }}</h3>
+            <p>Resolved</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h3>{{ closed_tickets }}</h3>
+            <p>Closed</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row mt-5">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'ticket-create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Ticket
+                    </a>
+                    <a href="{% url 'ticket-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> All Tickets
+                    </a>
+                    <a href="{% url 'kb-list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-book"></i> Knowledge Base
+                    </a>
+                    <a href="{% url 'ticket-create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus-circle"></i> Create KB Article
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Tickets -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-ticket-alt"></i> Recent Tickets
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Subject</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ ticket.id }}</strong>
+                                </td>
+                                <td>{{ ticket.subject }}</td>
+                                <td>
+                                    {% if ticket.priority == 'critical' %}
+                                        <span class="badge bg-danger">{{ ticket.priority|upper }}</span>
+                                    {% elif ticket.priority == 'high' %}
+                                        <span class="badge bg-warning">{{ ticket.priority|upper }}</span>
+                                    {% elif ticket.priority == 'medium' %}
+                                        <span class="badge bg-info">{{ ticket.priority|upper }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ ticket.priority|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ticket.status == 'open' %}
+                                        <span class="badge bg-success">{{ ticket.status|upper }}</span>
+                                    {% elif ticket.status == 'in_progress' %}
+                                        <span class="badge bg-primary">{{ ticket.status|upper }}</span>
+                                    {% elif ticket.status == 'resolved' %}
+                                        <span class="badge bg-info">{{ ticket.status|upper }}</span>
+                                    {% elif ticket.status == 'closed' %}
+                                        <span class="badge bg-secondary">{{ ticket.status|upper }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ ticket.status|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ticket.created_at|date:"d M Y" }}</td>
+                                <td>
+                                    <a href="{% url 'ticket-detail' ticket.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No tickets yet. <a href="{% url 'ticket-create' %}">Create one</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Status Distribution -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i> Ticket Status Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h6>New</h6>
+                        <h3 class="text-primary">0</h3>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Open</h6>
+                        <h3 class="text-success">{{ open_tickets }}</h3>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>In Progress</h6>
+                        <h3 class="text-warning">{{ in_progress_tickets }}</h3>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Resolved</h6>
+                        <h3 class="text-info">{{ resolved_tickets }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Knowledge Base -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-book"></i> Knowledge Base Articles
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Knowledge base articles will appear here once created.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
